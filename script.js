@@ -1,12 +1,10 @@
 document.addEventListener('DOMContentLoaded', () => {
     const playerListElement = document.getElementById('player-list');
     const audioPlayer = document.getElementById('audio-player');
-    const stopAllAudioButton = document.getElementById('stopAllAudio');
+    // const stopAllAudioButton = document.getElementById('stopAllAudio'); // REMOVED
     const resetTimesBattedButton = document.getElementById('resetTimesBatted');
 
-    if (stopAllAudioButton && !stopAllAudioButton.innerHTML.includes('fas')) {
-        stopAllAudioButton.innerHTML = `<i class="fas fa-stop-circle"></i> Stop All Audio`;
-    }
+    // Initialize Reset button icon if not already in HTML
     if (resetTimesBattedButton && !resetTimesBattedButton.innerHTML.includes('fas')) {
         resetTimesBattedButton.innerHTML = `<i class="fas fa-undo"></i> Reset At-Bats`;
     }
@@ -26,6 +24,7 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     }
 
+    // --- LOAD PLAYER DATA FROM JSON ---
     async function loadPlayers() {
         try {
             const response = await fetch('data/players.json');
@@ -42,7 +41,8 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!Array.isArray(players)) throw new Error("Data from players.json is not an array.");
             renderPlayerList();
             initializeSortable();
-        } catch (error) {
+        } catch (error)
+        {
             console.error("Could not load player data:", error.name, error.message);
             playerListElement.innerHTML = `<li style="color:red;padding:10px;background:#ffebee;"><strong>Error:</strong> ${error.message}</li>`;
         }
@@ -61,17 +61,12 @@ document.addEventListener('DOMContentLoaded', () => {
             listItem.classList.add('player-item');
             listItem.dataset.playerId = player.id;
 
-            let timesBattedRowHTML = ''; // Initialize as empty
-
-            // --- Conditionally create the Times Batted Row ---
+            let timesBattedRowHTML = '';
             if (player.timesBatted > 0) {
                 let timesBattedValueHTML = '';
                 for (let i = 0; i < player.timesBatted; i++) {
                     timesBattedValueHTML += '<i class="fas fa-baseball-ball batted-marker"></i>';
                 }
-                // Note: If timesBatted becomes 0 again (e.g., manual decrease), this row will NOT be rendered
-                // which is the desired "hide" behavior.
-
                 timesBattedRowHTML = `
                     <div class="times-batted-tracker" data-player-id="${player.id}">
                         <span class="times-batted-label">At-bats:</span>
@@ -84,10 +79,8 @@ document.addEventListener('DOMContentLoaded', () => {
                                 <i class="fas fa-plus"></i>
                             </button>
                         </div>
-                    </div>
-                `;
+                    </div>`;
             }
-            // --- End Times Batted Row ---
 
             const isCurrentlyPlayingThisPlayer = player.id === currentlyPlayingPlayerId;
             const playButtonIconClass = isCurrentlyPlayingThisPlayer ? 'fa-stop' : 'fa-play';
@@ -107,7 +100,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         </button>
                     </div>
                 </div>
-                ${timesBattedRowHTML}`; // This will be an empty string if timesBatted is 0
+                ${timesBattedRowHTML}`;
             playerListElement.appendChild(listItem);
         });
         addEventListenersToButtons();
@@ -170,7 +163,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (player) {
             player.timesBatted = (player.timesBatted || 0) + 1;
             console.log(`Player ${player.name} (ID: ${playerId}) times batted: ${player.timesBatted}`);
-            // renderPlayerList() will be called by proceedWithPlayback
+            // renderPlayerList() is called in proceedWithPlayback after this
         } else {
             console.error("Player not found for ID:", playerId, "in incrementTimesBatted");
         }
@@ -187,11 +180,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     player.timesBatted--;
                 } else {
                     console.log(`${player.name} already has 0 at-bats, cannot decrease further.`);
-                    return; // No change, no need to re-render
+                    return;
                 }
             }
             console.log(`Manually adjusted ${player.name} to ${player.timesBatted} at-bats.`);
-            renderPlayerList(); // Re-render to show the manual change (and hide/show row if needed)
+            renderPlayerList();
         } else {
             console.error("Player not found for ID:", playerId, "in manualAdjustTimesBatted");
         }
@@ -207,8 +200,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     updatePlayButtonIcon(currentlyPlayingPlayerId, false);
                     currentlyPlayingPlayerId = null;
                 }
-                renderPlayerList(); // This will now correctly hide all "At-bats" rows
-                // alert("At-bat counts have been reset."); // Alert removed
+                renderPlayerList();
+                // alert("At-bat counts have been reset."); // Re-added alert temporarily as it was in your last provided script for this part
+                                                        // Remove this line if you truly don't want it.
             }
         });
     } else { console.warn("Reset Times Batted button not found."); }
@@ -274,9 +268,8 @@ document.addEventListener('DOMContentLoaded', () => {
             playPromise.then(() => {
                 console.log("Audio playback SUCCEEDED for:", audioPlayer.src);
                 currentlyPlayingPlayerId = playerId;
-                // updatePlayButtonIcon is not strictly needed here because renderPlayerList will handle it
-                incrementTimesBatted(playerId); // This will update data
-                renderPlayerList(); // This will update UI including at-bat row and play/stop icon
+                incrementTimesBatted(playerId);
+                renderPlayerList(); // This will update at-bat UI AND play/stop icon
             }).catch(error => {
                 console.error("Audio playback FAILED:", audioPlayer.src, "Error:", error.name, "-", error.message);
                 console.error("Full error object for FAILED playback:", error);
@@ -286,7 +279,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } else { console.warn("ProceedWithPlayback: play() did not return a promise."); }
     }
 
-    // --- STOP ALL AUDIO ---
+    // --- STOP ALL AUDIO (Still used internally) ---
     function stopAllAudio() {
         console.log("Stopping all audio.");
         if (audioPlayer) {
@@ -301,7 +294,7 @@ document.addEventListener('DOMContentLoaded', () => {
             currentlyPlayingPlayerId = null;
         }
     }
-    stopAllAudioButton.addEventListener('click', stopAllAudio);
+    // No event listener for a global stopAllAudioButton anymore
 
     // --- REORDERING (using SortableJS) ---
     function initializeSortable() {

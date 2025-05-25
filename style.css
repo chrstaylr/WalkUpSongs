@@ -308,8 +308,8 @@ footer {
 /* --- Responsive Design --- */
 @media (max-width: 700px) {
     .header-content-wrapper {
-        padding-left: 1rem;
-        padding-right: 1rem;
+        padding-left: 0rem;
+        padding-right: 0rem;
     }
     /* Adjust title area for smaller screens if logo + title is too wide */
     .header-title-area {
@@ -339,8 +339,8 @@ footer {
 
 @media (max-width: 480px) {
     .header-content-wrapper {
-        padding-left: 0.8rem;
-        padding-right: 0.8rem;
+        padding-left: 0rem;
+        padding-right: 0rem;
     }
     .header-logo {
         height: 30px;
