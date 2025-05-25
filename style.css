@@ -1,0 +1,115 @@
+body {
+    font-family: sans-serif;
+    margin: 0;
+    background-color: #f4f4f4;
+    color: #333;
+    line-height: 1.6;
+}
+
+header {
+    background-color: #004687; /* A baseball blue */
+    color: #fff;
+    padding: 1rem 0;
+    text-align: center;
+}
+
+header h1 {
+    margin: 0;
+}
+
+main {
+    padding: 20px;
+    max-width: 800px;
+    margin: 20px auto;
+    background-color: #fff;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+.controls {
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+#stopAllAudio {
+    background-color: #c00;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1em;
+}
+#stopAllAudio:hover {
+    background-color: #a00;
+}
+
+
+#player-list-container h2 {
+    text-align: center;
+    color: #004687;
+}
+
+#player-list {
+    list-style: none;
+    padding: 0;
+}
+
+.player-item {
+    background-color: #e9ecef;
+    border: 1px solid #ccc;
+    margin-bottom: 10px;
+    padding: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-radius: 5px;
+    cursor: grab; /* For SortableJS */
+}
+
+.player-info {
+    font-size: 1.2em;
+}
+
+.player-info .number {
+    font-weight: bold;
+    margin-right: 10px;
+    color: #555;
+}
+
+.player-actions button {
+    background-color: #28a745;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    margin-left: 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9em;
+}
+
+.player-actions button:hover {
+    opacity: 0.9;
+}
+
+.player-actions .announce-btn {
+    background-color: #007bff;
+}
+
+.player-actions .play-song-btn {
+    background-color: #ffc107;
+    color: #333;
+}
+
+/* Style for the item being dragged */
+.sortable-ghost {
+    opacity: 0.4;
+    background: #c8ebfb;
+}
+
+footer {
+    text-align: center;
+    padding: 20px;
+    background-color: #333;
+    color: #fff;
+    margin-top: 30px;
+}

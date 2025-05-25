@@ -1,0 +1,5 @@
+[
+    { "id": 1, "number": "10", "name": "Shohei Ohtani", "song": "audio/MF DOOM - Doomsday.mp3", "announcementName": "Sho-hey Oh-tah-ni" },
+    { "id": 2, "number": "99", "name": "Aaron Judge", "song": "audio/judge_song.mp3", "announcementName": "Aaron Judge" },
+    { "id": 3, "number": "27", "name": "Jose Altuve", "song": "audio/altuve_song.mp3", "announcementName": "Ho-zay Al-too-vay" }
+]
