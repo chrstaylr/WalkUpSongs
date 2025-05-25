@@ -1,16 +1,14 @@
 document.addEventListener('DOMContentLoaded', () => {
     const playerListElement = document.getElementById('player-list');
-    const audioPlayer = document.getElementById('audio-player'); // Your main audio element
+    const audioPlayer = document.getElementById('audio-player');
     const stopAllAudioButton = document.getElementById('stopAllAudio');
 
     let players = [];
-    let isAudioContextUnlocked = false; // Flag for audio unlock strategy
+    let isAudioContextUnlocked = false;
 
-    // Ensure audioPlayer is not muted by default in JS if we are managing muted state for unlock
     if (audioPlayer) {
         audioPlayer.muted = false;
     }
-
 
     // --- LOAD PLAYER DATA FROM JSON ---
     async function loadPlayers() {
@@ -59,7 +57,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         if (players.length === 0 && playerListElement.innerHTML.includes('Error loading')) return;
 
-
         players.forEach(player => {
             const listItem = document.createElement('li');
             listItem.classList.add('player-item');
@@ -82,16 +79,19 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- EVENT LISTENERS FOR BUTTONS ---
     function addEventListenersToButtons() {
         document.querySelectorAll('.announce-btn').forEach(button => {
-            button.addEventListener('click', function() {
+            button.addEventListener('click', function(event) { // Added 'event'
+                event.stopPropagation(); // PREVENT BUBBLING TO SORTABLEJS
                 announceName(this.dataset.name);
             });
         });
+
         document.querySelectorAll('.play-song-btn').forEach(button => {
-            button.addEventListener('click', function() {
+            button.addEventListener('click', function(event) { // Added 'event'
+                event.stopPropagation(); // PREVENT BUBBLING TO SORTABLEJS
                 playSong(this.dataset.song);
             });
         });
-        console.log("Event listeners added to buttons.");
+        console.log("Event listeners added to buttons with stopPropagation.");
     }
 
     // --- ANNOUNCE PLAYER NAME (Text-to-Speech) ---
@@ -117,39 +117,37 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (songSrc && songSrc.trim() !== "" && songSrc !== "undefined" && songSrc !== "null") {
             console.log("PlaySong called for:", songSrc, "Audio unlocked:", isAudioContextUnlocked);
-            stopAllAudio(); // Stop any currently playing audio
+            stopAllAudio();
 
             audioPlayer.src = songSrc;
-            audioPlayer.load(); // Explicitly load the new source
+            audioPlayer.load();
 
             if (!isAudioContextUnlocked) {
                 console.log("Attempting to unlock audio context with a muted play...");
-                audioPlayer.muted = true; // Mute for the unlock attempt
+                audioPlayer.muted = true;
                 const unlockPromise = audioPlayer.play();
 
                 if (unlockPromise !== undefined) {
                     unlockPromise.then(() => {
-                        audioPlayer.pause(); // Quickly pause after unlock
-                        audioPlayer.currentTime = 0; // Reset
-                        audioPlayer.muted = false; // IMPORTANT: Unmute for actual playback
+                        audioPlayer.pause();
+                        audioPlayer.currentTime = 0;
+                        audioPlayer.muted = false;
                         console.log("Audio context unlock attempt SUCCEEDED (muted play). Proceeding to actual play.");
                         isAudioContextUnlocked = true;
-                        proceedWithPlayback(songSrc); // Now play for real
+                        proceedWithPlayback(songSrc);
                     }).catch(error => {
-                        audioPlayer.muted = false; // Ensure unmuted even if unlock failed
+                        audioPlayer.muted = false;
                         console.error("Audio context unlock attempt FAILED (muted play):", error.name, error.message);
-                        isAudioContextUnlocked = true; // Mark as attempted, try playing anyway
+                        isAudioContextUnlocked = true;
                         proceedWithPlayback(songSrc);
                     });
                 } else {
-                    // Fallback if play() doesn't return a promise (very old browsers)
                     audioPlayer.muted = false;
                     console.warn("Unlock: play() did not return a promise. Assuming unlocked and proceeding.");
                     isAudioContextUnlocked = true;
                     proceedWithPlayback(songSrc);
                 }
             } else {
-                // Audio context already unlocked, play directly
                 console.log("Audio context already unlocked. Proceeding to play directly.");
                 proceedWithPlayback(songSrc);
             }
@@ -159,13 +157,14 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function proceedWithPlayback(songSrcArgument) { // songSrcArgument is just for logging consistency
-        console.log("ProceedWithPlayback for:", audioPlayer.src); // Use audioPlayer.src as it's already set
+    function proceedWithPlayback(songSrcArgument) {
+        console.log("ProceedWithPlayback for:", audioPlayer.src);
         if (!audioPlayer) {
             console.error("Audio player element not found in proceedWithPlayback!");
             return;
         }
-        audioPlayer.muted = false; // Ensure it's not muted for actual playback
+        audioPlayer.muted = false;
+        console.log("In proceedWithPlayback, audioPlayer.muted:", audioPlayer.muted, "audioPlayer.volume:", audioPlayer.volume); // For debugging
 
         const playPromise = audioPlayer.play();
         if (playPromise !== undefined) {
@@ -174,7 +173,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }).catch(error => {
                 console.error("Audio playback FAILED for:", audioPlayer.src, "Error:", error.name, "-", error.message);
                 console.error("Full error object for FAILED playback:", error);
-                // alert(`Playback failed: ${error.name}. Try tapping again or check volume/silent mode.`);
             });
         } else {
             console.warn("ProceedWithPlayback: play() did not return a promise.");
@@ -204,7 +202,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 onEnd: function (evt) {
                     const movedItem = players.splice(evt.oldIndex, 1)[0];
                     players.splice(evt.newIndex, 0, movedItem);
-                    console.log('New player order (client-side):', players.map(p => p.name));
+                    // This log should now ONLY appear when you actually drag and drop
+                    console.log('New player order (client-side - from SortableJS onEnd):', players.map(p => p.name));
                 }
             });
             console.log("SortableJS initialized.");
