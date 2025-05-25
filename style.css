@@ -7,77 +7,115 @@
 
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-color: #f0f2f5; /* Lighter, modern background */
+    background-color: #f0f2f5;
     color: #333;
     line-height: 1.6;
     display: flex;
     flex-direction: column;
     min-height: 100vh;
-    padding-top: 70px; /* Space for fixed header */
+    padding-top: 70px; /* This MUST match the header's height */
 }
 
 /* --- Header --- */
 header {
-    background-color: #1a237e; /* Deep indigo - can be team color */
+    background-color: #1a237e;
     color: #ffffff;
-    padding: 1rem 0;
-    text-align: center;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    position: fixed; /* Fixed header */
+    position: fixed;
     width: 100%;
     top: 0;
     z-index: 1000;
+    height: 70px; /* Explicit height for the header bar */
+}
+
+.header-content-wrapper {
+    width: 90%;
+    max-width: 1100px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 100%;
+}
+
+/* NEW: Styles for the logo and title grouping */
+.header-title-area {
+    display: flex; /* To align logo and h1 side-by-side */
+    align-items: center; /* Vertically align logo and h1 */
+}
+
+.header-logo {
+    height: 45px; /* Adjust as needed to fit nicely in the 70px header height */
+    /* width: auto; Let height control and maintain aspect ratio */
+    margin-right: 15px; /* Space between logo and title */
+    object-fit: contain; /* Ensures the image scales nicely within its bounds */
 }
 
 header h1 {
     margin: 0;
-    font-size: 1.8em;
+    font-size: 1.6em; /* May need slight adjustment based on logo size */
     font-weight: 600;
+    white-space: nowrap;
 }
+
+.header-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+#stopAllAudio,
+#resetTimesBatted {
+    background-color: rgba(255, 255, 255, 0.15);
+    color: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    padding: 8px 15px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 0.9em;
+    font-weight: 500;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+    display: inline-flex;
+    align-items: center;
+    white-space: nowrap;
+}
+
+#stopAllAudio:hover,
+#resetTimesBatted:hover {
+    background-color: rgba(255, 255, 255, 0.25);
+}
+
+#stopAllAudio:active,
+#resetTimesBatted:active {
+    transform: scale(0.98);
+}
+
+#stopAllAudio i,
+#resetTimesBatted i {
+    margin-right: 6px;
+    font-size: 1.1em;
+}
+
+.button-text {
+    display: inline;
+}
+
 
 /* --- Main Content --- */
 main {
-    flex: 1; /* Makes main content take up available space */
-    padding: 20px;
-    width: 90%; /* Takes up 90% of the available viewport width */
-    max-width: 1100px; /* But won't exceed 1100px */
+    flex: 1;
+    width: 90%;
+    max-width: 1100px;
     margin: 20px auto;
     background-color: #ffffff;
     border-radius: 8px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    padding: 20px;
 }
 
-/* --- Controls (Stop Button) --- */
-.controls {
-    margin-bottom: 25px;
-    text-align: center;
-}
+/* ... (rest of your styles for player list, footer, etc. remain the same) ... */
+/* Player List, Times Batted Tracker, Footer, etc. as before */
 
-#stopAllAudio {
-    background-color: #d32f2f; /* Material Design Red */
-    color: white;
-    border: none;
-    padding: 12px 20px;
-    border-radius: 25px; /* Pill shape */
-    cursor: pointer;
-    font-size: 0.95em;
-    font-weight: 500;
-    transition: background-color 0.2s ease, transform 0.1s ease;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.15);
-}
-
-#stopAllAudio:hover {
-    background-color: #c62828;
-}
-#stopAllAudio:active {
-    transform: scale(0.98);
-}
-#stopAllAudio i {
-    margin-right: 8px;
-}
-
-
-/* --- Player List --- */
 #player-list-container h2 {
     text-align: center;
     color: #1a237e;
@@ -92,99 +130,230 @@ main {
 }
 
 .player-item {
-    background-color: #ffffff;
-    border: 1px solid #e0e0e0; /* Softer border */
-    margin-bottom: 12px;
-    padding: 15px 20px;
     display: flex;
-    align-items: center;
-    justify-content: space-between;
+    flex-direction: column;
+    background-color: #ffffff;
+    border: 1px solid #e0e0e0;
+    margin-bottom: 12px;
     border-radius: 6px;
     transition: box-shadow 0.2s ease, background-color 0.2s ease;
-    cursor: grab; /* Default cursor for draggable items */
 }
 
 .player-item:hover {
     box-shadow: 0 3px 8px rgba(0, 0, 0, 0.06);
 }
 
-/* Drag Handle Icon */
+.player-item-main {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 15px 20px;
+    width: 100%;
+}
+
 .drag-handle {
-    color: #90a4ae; /* Muted color for the handle */
+    color: #90a4ae;
     margin-right: 15px;
     font-size: 1.2em;
-    cursor: grab; /* Explicitly set grab cursor for the handle */
+    cursor: grab;
+    padding: 5px;
 }
-.player-item:active .drag-handle, /* When dragging */
+.player-item:active .drag-handle,
 .sortable-ghost .drag-handle {
     cursor: grabbing;
 }
 
-
 .player-info {
-    flex-grow: 1; /* Allow player info to take available space */
+    flex-grow: 1;
     display: flex;
     align-items: center;
+    min-width: 0;
 }
 
 .player-info .number {
     font-weight: 700;
     margin-right: 12px;
-    color: #3f51b5; /* Indigo accent */
+    color: #3f51b5;
     font-size: 1.1em;
-    min-width: 35px; /* Ensure numbers align a bit */
+    min-width: 35px;
     text-align: right;
 }
 
 .player-info .name {
     font-size: 1.1em;
-    color: #212121; /* Darker text for name */
+    color: #212121;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.player-actions {
+    display: flex;
+    align-items: center;
 }
 
 .player-actions button {
-    background-color: transparent; /* Transparent background for icon buttons */
-    color: #546e7a; /* Muted icon color */
+    background-color: transparent;
+    color: #546e7a;
     border: none;
-    padding: 8px; /* Just enough for the icon */
+    padding: 8px;
     margin-left: 8px;
-    border-radius: 50%; /* Circular buttons */
+    border-radius: 50%;
     cursor: pointer;
-    font-size: 1.2em; /* Increase icon size */
-    width: 40px; /* Fixed width for circle */
-    height: 40px; /* Fixed height for circle */
+    font-size: 1.2em;
+    width: 40px;
+    height: 40px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     transition: background-color 0.2s ease, color 0.2s ease;
+    flex-shrink: 0;
 }
 
 .player-actions button:hover {
-    background-color: #eceff1; /* Light grey hover */
-    color: #263238; /* Darker icon on hover */
+    background-color: #eceff1;
+    color: #263238;
 }
 
-/* Specific button colors (optional, can keep them uniform) */
-.player-actions .announce-btn:hover {
-    /* color: #1976d2; Blue */
-}
-.player-actions .play-song-btn:hover {
-    /* color: #fbc02d;  Yellow/Gold */
+.times-batted-tracker {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 20px 10px;
+    border-top: 1px solid #f0f0f0;
+    background-color: #f9f9f9;
+    border-bottom-left-radius: 6px;
+    border-bottom-right-radius: 6px;
+    font-size: 0.9em;
 }
 
+.times-batted-label {
+    color: #555;
+    font-weight: 500;
+    margin-right: auto;
+    white-space: nowrap;
+}
 
-/* Style for the item being dragged (SortableJS ghost) */
+.times-batted-value-container {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    min-width: 20px;
+    margin: 0 10px;
+    flex-wrap: wrap;
+    flex-shrink: 10;
+}
+
+.no-bats-text {
+    color: #757575;
+    font-style: italic;
+    font-size: 1em;
+}
+
+.batted-marker {
+    color: #0d47a1;
+    font-size: 1.1em;
+    margin-right: 4px;
+    margin-bottom: 2px;
+    transition: transform 0.2s ease-in-out;
+}
+.batted-marker:hover {
+    transform: scale(1.2);
+}
+
+.manual-adjust-controls {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.adjust-btn {
+    background-color: transparent;
+    border: 1px solid #bdbdbd;
+    color: #616161;
+    border-radius: 50%;
+    width: 28px;
+    height: 28px;
+    font-size: 0.8em;
+    padding: 0;
+    margin-left: 6px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+.adjust-btn:hover {
+    background-color: #f5f5f5;
+    color: #000;
+    border-color: #9e9e9e;
+}
+
 .sortable-ghost {
     opacity: 0.6;
-    background: #e3f2fd; /* Light blue placeholder */
+    background: #e3f2fd;
     border-style: dashed;
 }
 
-/* Footer */
 footer {
     text-align: center;
     padding: 20px;
-    background-color: #e8eaf6; /* Light indigo variant for footer */
+    background-color: #e8eaf6;
     color: #5c6bc0;
-    margin-top: auto; /* Pushes footer to bottom if content is short */
+    margin-top: auto;
     font-size: 0.9em;
+}
+
+/* --- Responsive Design --- */
+@media (max-width: 700px) {
+    .header-content-wrapper {
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+    /* Adjust title area for smaller screens if logo + title is too wide */
+    .header-title-area {
+        /* If title needs to wrap or logo gets smaller */
+    }
+    .header-logo {
+        height: 35px; /* Smaller logo on smaller screens */
+        margin-right: 10px;
+    }
+    header h1 {
+        font-size: 1.2em; /* Make title smaller to fit with logo */
+    }
+    .header-controls .button-text {
+        display: none;
+    }
+    #stopAllAudio,
+    #resetTimesBatted {
+        padding: 8px 10px;
+        min-width: 40px;
+        justify-content: center;
+    }
+    #stopAllAudio i,
+    #resetTimesBatted i {
+        margin-right: 0;
+    }
+}
+
+@media (max-width: 480px) {
+    .header-content-wrapper {
+        padding-left: 0.8rem;
+        padding-right: 0.8rem;
+    }
+    .header-logo {
+        height: 30px;
+        margin-right: 8px;
+    }
+    header h1 {
+        font-size: 1em; /* Even smaller title */
+    }
+    /* ... other small screen adjustments from previous CSS ... */
+    .player-item-main { padding: 10px 15px; }
+    .times-batted-tracker { padding: 6px 15px 8px; font-size: 0.85em; }
+    .player-info .name { font-size: 1em; }
+    .player-actions button { width: 36px; height: 36px; font-size: 1.1em; margin-left: 5px; }
+    .manual-adjust-controls { gap: 3px; }
+    .adjust-btn { width: 26px; height: 26px; margin-left: 3px; }
 }
