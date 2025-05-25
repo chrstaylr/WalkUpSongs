@@ -36,7 +36,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             renderPlayerList();
-            initializeSortable();
+            initializeSortable(); // initializeSortable will be called after render
 
         } catch (error) {
             console.error("Could not load player data:", error.name, error.message);
@@ -73,25 +73,27 @@ document.addEventListener('DOMContentLoaded', () => {
             `;
             playerListElement.appendChild(listItem);
         });
-        addEventListenersToButtons();
+        addEventListenersToButtons(); // Add listeners after items are in DOM
     }
 
     // --- EVENT LISTENERS FOR BUTTONS ---
+    // With SortableJS filter option, stopPropagation might not be strictly needed here,
+    // but it's good practice to keep it if there's any doubt or other parent listeners.
     function addEventListenersToButtons() {
         document.querySelectorAll('.announce-btn').forEach(button => {
-            button.addEventListener('click', function(event) { // Added 'event'
-                event.stopPropagation(); // PREVENT BUBBLING TO SORTABLEJS
+            button.addEventListener('click', function(event) {
+                event.stopPropagation(); // Keep for good measure
                 announceName(this.dataset.name);
             });
         });
 
         document.querySelectorAll('.play-song-btn').forEach(button => {
-            button.addEventListener('click', function(event) { // Added 'event'
-                event.stopPropagation(); // PREVENT BUBBLING TO SORTABLEJS
+            button.addEventListener('click', function(event) {
+                event.stopPropagation(); // Keep for good measure
                 playSong(this.dataset.song);
             });
         });
-        console.log("Event listeners added to buttons with stopPropagation.");
+        console.log("Event listeners added to buttons (stopPropagation still present).");
     }
 
     // --- ANNOUNCE PLAYER NAME (Text-to-Speech) ---
@@ -109,88 +111,44 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- PLAY WALK-UP SONG ---
     function playSong(songSrc) {
-        if (!audioPlayer) {
-            console.error("Audio player element not found!");
-            alert("Audio player error. Please refresh.");
-            return;
-        }
-
+        if (!audioPlayer) { /* ... error handling ... */ return; }
         if (songSrc && songSrc.trim() !== "" && songSrc !== "undefined" && songSrc !== "null") {
             console.log("PlaySong called for:", songSrc, "Audio unlocked:", isAudioContextUnlocked);
             stopAllAudio();
-
             audioPlayer.src = songSrc;
             audioPlayer.load();
-
             if (!isAudioContextUnlocked) {
                 console.log("Attempting to unlock audio context with a muted play...");
                 audioPlayer.muted = true;
                 const unlockPromise = audioPlayer.play();
-
                 if (unlockPromise !== undefined) {
-                    unlockPromise.then(() => {
-                        audioPlayer.pause();
-                        audioPlayer.currentTime = 0;
-                        audioPlayer.muted = false;
-                        console.log("Audio context unlock attempt SUCCEEDED (muted play). Proceeding to actual play.");
-                        isAudioContextUnlocked = true;
-                        proceedWithPlayback(songSrc);
-                    }).catch(error => {
-                        audioPlayer.muted = false;
-                        console.error("Audio context unlock attempt FAILED (muted play):", error.name, error.message);
-                        isAudioContextUnlocked = true;
-                        proceedWithPlayback(songSrc);
-                    });
-                } else {
-                    audioPlayer.muted = false;
-                    console.warn("Unlock: play() did not return a promise. Assuming unlocked and proceeding.");
-                    isAudioContextUnlocked = true;
-                    proceedWithPlayback(songSrc);
-                }
+                    unlockPromise.then(() => { /* ... unlock success ... */ isAudioContextUnlocked = true; proceedWithPlayback(songSrc); })
+                                 .catch(error => { /* ... unlock fail ... */ isAudioContextUnlocked = true; proceedWithPlayback(songSrc); });
+                } else { /* ... no promise ... */ isAudioContextUnlocked = true; proceedWithPlayback(songSrc); }
             } else {
-                console.log("Audio context already unlocked. Proceeding to play directly.");
                 proceedWithPlayback(songSrc);
             }
-        } else {
-            alert("No song file specified or path is invalid.");
-            console.warn("Attempted to play an invalid song source:", songSrc);
-        }
+        } else { /* ... invalid songSrc ... */ }
     }
 
     function proceedWithPlayback(songSrcArgument) {
         console.log("ProceedWithPlayback for:", audioPlayer.src);
-        if (!audioPlayer) {
-            console.error("Audio player element not found in proceedWithPlayback!");
-            return;
-        }
+        if (!audioPlayer) { /* ... error ... */ return; }
         audioPlayer.muted = false;
-        console.log("In proceedWithPlayback, audioPlayer.muted:", audioPlayer.muted, "audioPlayer.volume:", audioPlayer.volume); // For debugging
-
+        console.log("In proceedWithPlayback, audioPlayer.muted:", audioPlayer.muted, "audioPlayer.volume:", audioPlayer.volume);
         const playPromise = audioPlayer.play();
         if (playPromise !== undefined) {
-            playPromise.then(() => {
-                console.log("Audio playback SUCCEEDED for:", audioPlayer.src);
-            }).catch(error => {
-                console.error("Audio playback FAILED for:", audioPlayer.src, "Error:", error.name, "-", error.message);
-                console.error("Full error object for FAILED playback:", error);
-            });
-        } else {
-            console.warn("ProceedWithPlayback: play() did not return a promise.");
-        }
+            playPromise.then(() => { console.log("Audio playback SUCCEEDED for:", audioPlayer.src); })
+                         .catch(error => { console.error("Audio playback FAILED for:", audioPlayer.src, "Error:", error.name, "-", error.message); console.error("Full error object for FAILED playback:", error); });
+        } else { console.warn("ProceedWithPlayback: play() did not return a promise."); }
     }
 
     // --- STOP ALL AUDIO ---
     function stopAllAudio() {
         console.log("Stopping all audio.");
-        if (audioPlayer) {
-            audioPlayer.pause();
-            audioPlayer.currentTime = 0;
-        }
-        if ('speechSynthesis' in window && speechSynthesis.speaking) {
-            speechSynthesis.cancel();
-        }
+        if (audioPlayer) { audioPlayer.pause(); audioPlayer.currentTime = 0; }
+        if ('speechSynthesis' in window && speechSynthesis.speaking) { speechSynthesis.cancel(); }
     }
-
     stopAllAudioButton.addEventListener('click', stopAllAudio);
 
     // --- REORDERING (using SortableJS) ---
@@ -199,14 +157,22 @@ document.addEventListener('DOMContentLoaded', () => {
             new Sortable(playerListElement, {
                 animation: 150,
                 ghostClass: 'sortable-ghost',
+                filter: '.announce-btn, .play-song-btn', // ADDED THIS LINE
+                preventOnFilter: true, // Default, but good to be explicit
                 onEnd: function (evt) {
-                    const movedItem = players.splice(evt.oldIndex, 1)[0];
-                    players.splice(evt.newIndex, 0, movedItem);
-                    // This log should now ONLY appear when you actually drag and drop
-                    console.log('New player order (client-side - from SortableJS onEnd):', players.map(p => p.name));
+                    console.log('SortableJS onEnd triggered. Old:', evt.oldIndex, 'New:', evt.newIndex);
+                    if (typeof evt.oldIndex !== 'undefined' && typeof evt.newIndex !== 'undefined' && evt.oldIndex !== evt.newIndex) {
+                        const movedItem = players.splice(evt.oldIndex, 1)[0];
+                        players.splice(evt.newIndex, 0, movedItem);
+                        console.log('New player order (client-side - from SortableJS onEnd DRAG):', players.map(p => p.name));
+                    } else if (evt.oldIndex === evt.newIndex) {
+                        console.log("SortableJS onEnd: oldIndex === newIndex. Likely a click/tap not filtered, or no actual move.");
+                    } else {
+                        console.warn("SortableJS onEnd: Undefined old/new index or unexpected event. Event target:", evt.target, "Item:", evt.item);
+                    }
                 }
             });
-            console.log("SortableJS initialized.");
+            console.log("SortableJS initialized with filter: '.announce-btn, .play-song-btn'.");
         } else if (typeof Sortable === 'undefined') {
             console.warn("SortableJS not loaded. Reordering will not be available.");
         } else {
@@ -216,8 +182,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- INITIALIZATION ---
     console.log("DOM fully loaded. Initializing app...");
-    if (!audioPlayer) {
-        console.error("CRITICAL: Audio player element not found on DOMContentLoaded!");
-    }
+    if (!audioPlayer) { console.error("CRITICAL: Audio player element not found on DOMContentLoaded!"); }
     loadPlayers();
 });
