@@ -1,5 +1,15 @@
 [
-    { "id": 1, "number": "10", "name": "Shohei Ohtani", "song": "audio/MF DOOM - Doomsday.mp3", "announcementName": "Sho-hey Oh-tah-ni", "timesBatted": 0 },
-    { "id": 2, "number": "99", "name": "Aaron Judge", "song": "audio/judge_song.mp3", "announcementName": "Aaron Judge", "timesBatted": 0 },
-    { "id": 3, "number": "27", "name": "Jose Altuve", "song": "audio/altuve_song.mp3", "announcementName": "Ho-zay Al-too-vay", "timesBatted": 0 }
+    { "id": 1, "number": "8", "name": "Anthony Chuvalo", "song": "audio/BlasterJaxx - Narco-edit.mp3", "announcementName": "Anthony Chuvalo", "timesBatted": 0 },
+    { "id": 2, "number": "88", "name": "Benjamin Hopper", "song": "audio/Don Toliver - BANDIT.mp3", "announcementName": "Benjamin Hopper", "timesBatted": 0 },
+    { "id": 3, "number": "38", "name": "Chase Carpenter", "song": "audio/Kendrick Lamar - luther-edit.mp3", "announcementName": "Chase Carpenter", "timesBatted": 0 },
+    { "id": 4, "number": "23", "name": "Edward Hopper", "song": "audio/MF DOOM - Doomsday.mp3", "announcementName": "Edward Hopper", "timesBatted": 0 },
+    { "id": 5, "number": "6", "name": "Hunter Graham", "song": "audio/2Pac - California Love (Original Version).mp3", "announcementName": "Hunter Graham", "timesBatted": 0 },
+    { "id": 6, "number": "18", "name": "Jack Taylor", "song": "audio/Kanye West - Part 2-edit.mp3", "announcementName": "Jack Taylor", "timesBatted": 0 },
+    { "id": 7, "number": "27", "name": "Jackson Harris", "song": "audio/Metro Boomin - Raindrops (Insane)-edit.mp3", "announcementName": "Jackson Harris", "timesBatted": 0 },
+    { "id": 8, "number": "31", "name": "Maddox Nott", "song": "audio/Kendrick Lamar - tv off-edit.mp3", "announcementName": "Maddox Nott", "timesBatted": 0 },
+    { "id": 9, "number": "22", "name": "Mia Lafferty", "song": "audio/NF - Hands Up-edit.mp3", "announcementName": "Mia Lafferty", "timesBatted": 0 },
+    { "id": 10, "number": "11", "name": "Nathan Hicks", "song": "audio/ACDC - T.N.T.-edit.mp3", "announcementName": "Nathan Hicks", "timesBatted": 0 },
+    { "id": 11, "number": "30", "name": "Theodore Lloyd", "song": "audio/The Notorious B.I.G. - Big Poppa (Amended Album Version).mp3", "announcementName": "Theodore Lloyd", "timesBatted": 0 },
+    { "id": 12, "number": "34", "name": "Ty Drake", "song": "audio/Gwen Stefani - The Sweet Escape-edit.mp3", "announcementName": "Ty Drake", "timesBatted": 0 },
+    { "id": 13, "number": "19", "name": "Vlora Shabani", "song": "audio/EVE - Who's That Girl-edit.mp3", "announcementName": "Vlora Shabani", "timesBatted": 0 }
 ]

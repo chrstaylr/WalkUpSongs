@@ -1,7 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
     const playerListElement = document.getElementById('player-list');
     const audioPlayer = document.getElementById('audio-player');
-    // const stopAllAudioButton = document.getElementById('stopAllAudio'); // REMOVED
     const resetTimesBattedButton = document.getElementById('resetTimesBatted');
 
     // Initialize Reset button icon if not already in HTML
@@ -9,7 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
         resetTimesBattedButton.innerHTML = `<i class="fas fa-undo"></i> Reset At-Bats`;
     }
 
-    let players = [];
+    let players = []; // This will hold the current state of players, including their order
     let isAudioContextUnlocked = false;
     let currentlyPlayingPlayerId = null;
 
@@ -36,15 +35,53 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.error("Response was not JSON. CT:", contentType, "Text:", responseText);
                 throw new TypeError("Oops, not JSON! Check players.json (no comments).");
             }
-            players = await response.json();
-            console.log('Players loaded from JSON:', players);
-            if (!Array.isArray(players)) throw new Error("Data from players.json is not an array.");
+            let fetchedPlayers = await response.json(); // Store fetched players temporarily
+            console.log('Players fetched from JSON:', fetchedPlayers);
+            if (!Array.isArray(fetchedPlayers)) throw new Error("Data from players.json is not an array.");
+
+            // --- LOAD AND APPLY SAVED ORDER FROM LOCALSTORAGE ---
+            try {
+                const savedOrderJson = localStorage.getItem('walkUpPlayerOrder');
+                if (savedOrderJson) {
+                    const savedOrderIds = JSON.parse(savedOrderJson);
+                    if (Array.isArray(savedOrderIds) && savedOrderIds.length > 0) {
+                        const orderedPlayers = [];
+                        // Add players in the saved order
+                        savedOrderIds.forEach(id => {
+                            const player = fetchedPlayers.find(p => p.id === id);
+                            if (player) {
+                                orderedPlayers.push(player);
+                            }
+                        });
+                        // Add any new players from fetchedPlayers that weren't in savedOrder
+                        // (e.g., if players.json was updated)
+                        fetchedPlayers.forEach(player => {
+                            if (!orderedPlayers.some(op => op.id === player.id)) {
+                                orderedPlayers.push(player);
+                            }
+                        });
+                        players = orderedPlayers;
+                        console.log('Player order loaded and applied from localStorage.');
+                    } else {
+                        console.warn("Saved player order in localStorage was invalid or empty. Using default order.");
+                        players = fetchedPlayers;
+                    }
+                } else {
+                    console.log('No saved player order found. Using default order from players.json.');
+                    players = fetchedPlayers;
+                }
+            } catch (e) {
+                console.error("Error loading/parsing player order from localStorage:", e);
+                players = fetchedPlayers; // Fallback to default order
+            }
+            // --- END LOAD AND APPLY SAVED ORDER ---
+
             renderPlayerList();
             initializeSortable();
-        } catch (error)
-        {
+        } catch (error) {
             console.error("Could not load player data:", error.name, error.message);
             playerListElement.innerHTML = `<li style="color:red;padding:10px;background:#ffebee;"><strong>Error:</strong> ${error.message}</li>`;
+            players = []; // Ensure players is empty on critical load error
         }
     }
 
@@ -137,7 +174,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 event.stopPropagation();
                 const songToPlay = this.dataset.song;
                 const clickedPlayerId = parseInt(this.dataset.playerId);
-
                 if (currentlyPlayingPlayerId === clickedPlayerId) {
                     stopAllAudio();
                 } else {
@@ -180,11 +216,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     player.timesBatted--;
                 } else {
                     console.log(`${player.name} already has 0 at-bats, cannot decrease further.`);
-                    return;
+                    return; // No change, no need to re-render
                 }
             }
             console.log(`Manually adjusted ${player.name} to ${player.timesBatted} at-bats.`);
-            renderPlayerList();
+            renderPlayerList(); // Re-render to show the manual change
         } else {
             console.error("Player not found for ID:", playerId, "in manualAdjustTimesBatted");
         }
@@ -194,15 +230,36 @@ document.addEventListener('DOMContentLoaded', () => {
     if (resetTimesBattedButton) {
         resetTimesBattedButton.addEventListener('click', () => {
             console.log("Resetting all times batted counts.");
-            if (confirm("Are you sure you want to reset all at-bat counts?")) {
+            if (confirm("Are you sure you want to reset all at-bat counts AND the player order?")) { // Updated confirm message
                 players.forEach(player => { player.timesBatted = 0; });
                 if (currentlyPlayingPlayerId !== null) {
                     updatePlayButtonIcon(currentlyPlayingPlayerId, false);
                     currentlyPlayingPlayerId = null;
                 }
-                renderPlayerList();
-                // alert("At-bat counts have been reset."); // Re-added alert temporarily as it was in your last provided script for this part
-                                                        // Remove this line if you truly don't want it.
+
+                // Clear saved order from localStorage
+                try {
+                    localStorage.removeItem('walkUpPlayerOrder');
+                    console.log('Saved player order cleared from localStorage.');
+                } catch (e) {
+                    console.error("Error clearing player order from localStorage:", e);
+                }
+
+                // To reflect the order reset immediately, we need to reload players from default
+                // This is an async operation, so we'll chain it.
+                // The simplest way is to just call loadPlayers() again after confirming.
+                // This will fetch, then apply (no) saved order, then render.
+                console.log("Reloading players to reset order to default...");
+                loadPlayers().then(() => { // loadPlayers is async
+                    // renderPlayerList(); // loadPlayers now calls renderPlayerList
+                    console.log("At-bat counts and player order have been reset.");
+                    // alert("At-bat counts and player order have been reset."); // Your choice on alert
+                }).catch(error => {
+                    console.error("Error reloading players after reset:", error);
+                    // Still render with the current (potentially unsorted) in-memory player data if load fails
+                    renderPlayerList();
+                });
+
             }
         });
     } else { console.warn("Reset Times Batted button not found."); }
@@ -269,11 +326,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.log("Audio playback SUCCEEDED for:", audioPlayer.src);
                 currentlyPlayingPlayerId = playerId;
                 incrementTimesBatted(playerId);
-                renderPlayerList(); // This will update at-bat UI AND play/stop icon
+                renderPlayerList(); // Update UI including at-bat count and play/stop icon
             }).catch(error => {
                 console.error("Audio playback FAILED:", audioPlayer.src, "Error:", error.name, "-", error.message);
                 console.error("Full error object for FAILED playback:", error);
-                updatePlayButtonIcon(playerId, false);
+                updatePlayButtonIcon(playerId, false); // Reset icon on failure
                 if(currentlyPlayingPlayerId === playerId) currentlyPlayingPlayerId = null;
             });
         } else { console.warn("ProceedWithPlayback: play() did not return a promise."); }
@@ -294,13 +351,15 @@ document.addEventListener('DOMContentLoaded', () => {
             currentlyPlayingPlayerId = null;
         }
     }
-    // No event listener for a global stopAllAudioButton anymore
+    // No event listener for a global stopAllAudioButton as it was removed
 
     // --- REORDERING (using SortableJS) ---
     function initializeSortable() {
         if (typeof Sortable !== 'undefined' && playerListElement && playerListElement.children.length > 0) {
             new Sortable(playerListElement, {
-                animation: 150, ghostClass: 'sortable-ghost', handle: '.drag-handle',
+                animation: 150,
+                ghostClass: 'sortable-ghost',
+                handle: '.drag-handle',
                 filter: '.announce-btn, .play-song-btn, .player-info, .adjust-btn',
                 preventOnFilter: true,
                 onEnd: function (evt) {
@@ -308,7 +367,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (typeof evt.oldIndex !== 'undefined' && typeof evt.newIndex !== 'undefined' && evt.oldIndex !== evt.newIndex) {
                         const movedItem = players.splice(evt.oldIndex, 1)[0];
                         players.splice(evt.newIndex, 0, movedItem);
-                        console.log('New player order (from SortableJS DRAG):', players.map(p => p.name));
+                        console.log('New player order (in memory):', players.map(p => p.name));
+                        try {
+                            const playerOrderIds = players.map(p => p.id);
+                            localStorage.setItem('walkUpPlayerOrder', JSON.stringify(playerOrderIds));
+                            console.log('Player order saved to localStorage.');
+                        } catch (e) {
+                            console.error("Error saving player order to localStorage:", e);
+                        }
                     } else if (evt.oldIndex === evt.newIndex) {
                         console.log("SortableJS onEnd: old === new.");
                     } else { console.warn("SortableJS onEnd: Unexpected event."); }
@@ -322,5 +388,5 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- INITIALIZATION ---
     console.log("DOM fully loaded. Initializing app...");
     if (!audioPlayer) { console.error("CRITICAL: Audio player element not found on DOMContentLoaded!"); }
-    loadPlayers();
+    loadPlayers(); // Start the app by loading players (which includes loading saved order)
 });
